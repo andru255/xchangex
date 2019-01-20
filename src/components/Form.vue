@@ -8,18 +8,21 @@
     <div class="row">
       <div class="col-md-6 mb-3">
         <label for="dollarAmount">Monto en dólares</label>
-        <input class="form-control" v-model="dollar" placeholder="USD" :disabled="isRequestInProgress == true">
+        <input class="form-control" v-model="dollar" placeholder="USD" :disabled="isRequestInProgress">
       </div>
       <div class="col-md-6 mb-3">
         <label for="euroAmount">Monto en euros</label>
         <input class="form-control" v-model="euro" placeholder="EU" readonly="readonly">
       </div>
     </div>
-    <button class="btn btn-primary btn-lg" v-on:click="calculate" v-on:keyup.13="calculate" :disabled="isRequestInProgress == true">Calcular</button>
+    <button class="btn btn-primary btn-lg" v-on:click="calculate" v-on:keyup.13="calculate" :disabled="isRequestInProgress">Calcular</button>
   </form>
 </template>
 
 <script>
+import CurrencyRepository from "../repositories/currency";
+import Utils from "../utils";
+
 export default {
   name: "Form",
   data: function() {
@@ -27,29 +30,47 @@ export default {
       errors: [],
       dollar: undefined,
       euro: undefined,
-      isRequestInProgress: false
+      isRequestInProgress: false,
+      intervalCurrencyUpdate: function() {}
     };
   },
   methods: {
     calculate: function() {
       this.errors = [];
       this.isRequestInProgress = true;
-      let regexDollar = /^\d{1,3}(,\d{3})*?(\.\d{2,4})?$/;
 
-      if (regexDollar.test(this.dollar)) {
-        this.doRequest();
-        setTimeout(() => { 
-          this.isRequestInProgress = false;
-        }, 300);
+      if (Utils.isValidCurrencyFormat(this.dollar)) {
+        CurrencyRepository.getCurrency(
+          value => {
+            this.isRequestInProgress = false;
+            let euroFloat = value * Utils.currencyToFloat(this.dollar);
+            this.euro = Utils.floatToCurrency(euroFloat);
+          },
+          () => {
+            this.errors.push(
+              "Ups! Se encontró un error interno, intente de nuevo"
+            );
+            this.isRequestInProgress = false;
+          }
+        );
         return false;
       }
 
-      // estados por defecto
+      this.euro = undefined;
+      clearInterval(this.intervalCurrencyUpdate);
+      this.intervalCurrencyUpdate = function() {};
       this.isRequestInProgress = false;
       this.errors.push("Ingrese un monto con formáto válido. Ejemplo: 1,100");
-    },
-    doRequest: function() {
-      console.log("Realizando petición...");
+    }
+  },
+  watch: {
+    euro() {
+      if (typeof this.euro !== "undefined") {
+        clearInterval(this.intervalCurrencyUpdate);
+        this.intervalCurrencyUpdate = setInterval(() => {
+          this.calculate();
+        }, 60000 * 10);
+      }
     }
   }
 };
