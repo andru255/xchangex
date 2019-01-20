@@ -17,7 +17,8 @@ const Utils = {
     let prefix = value < 0 ? "-" : "";
     let overridedValue = Math.abs(Number(value) || 0);
     let index = String(parseInt(overridedValue.toFixed(count)));
-    let j = (j = index.length) > 3 ? j % 3 : 0;
+    var j = 0;
+    j = (j = index.length) > 3 ? j % 3 : 0;
     let output = [
       prefix,
       j ? index.substr(0, j) + separatorSymbol : "",
