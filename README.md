@@ -1,5 +1,17 @@
 # xchangex
 
+## Environment
+
+- Ubuntu 16.04
+
+- nvm 0.33.11
+
+- node 10.15.0
+
+- npm 6.4.1
+
+- vue-cli 3.3.0
+
 ## Project setup
 ```
 npm install
@@ -13,11 +25,6 @@ npm run serve
 ### Compiles and minifies for production
 ```
 npm run build
-```
-
-### Run your tests
-```
-npm run test
 ```
 
 ### Lints and fixes files
